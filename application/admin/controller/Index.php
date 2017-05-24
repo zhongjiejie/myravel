@@ -5,6 +5,7 @@ use app\admin\model\Place;
 use app\admin\model\User;
 use think\Db;
 use think\Controller;
+use think\Session;
 
 
 class Index extends Controller
@@ -34,9 +35,53 @@ class Index extends Controller
 		$list = Db::name('place')->where('grandpa_id',0)->paginate(10);
 		// 把分页数据赋值给模板变量list
 		$this->assign('list', $list);
-		
-		$this->assign('place',$place);
 
+		//显示景点
+		$spotList = Db::name('spot')->where(1)->paginate(10);
+		$spotPage = $spotList->render();
+		$this->assign('spotList',$spotList);
+		$this->assign('spotPage',$spotPage);
+
+		//显示旅游攻略
+		$logList = Db::name('log')->where('isdel=0')->paginate(10);
+		$logPage = $logList->render();
+		$this->assign('logList',$logList);
+		$this->assign('logPage',$logPage);
+
+		//显示回收站里面的旅游攻略
+		$trashList = Db::name('log')->where('isdel=1')->paginate(10);
+		$trashPage = $trashList->render();
+		$this->assign('trashList',$trashList);
+		$this->assign('trashPage',$trashPage);
+
+
+		//显示旅游评论
+		$commentList = Db::name('comment')->where('isdel=0')->paginate(10);
+		$commentPage = $commentList->render();
+		$this->assign('commentList',$commentList);
+		$this->assign('commentPage',$commentPage);
+
+
+		//显示回收站里面的评论
+		$commentTrash = Db::name('comment')->where('isdel=1')->paginate(10);
+		$commentTrashPage = $commentTrash->render();
+		$this->assign('commentTrash',$commentTrash);
+		$this->assign('commentTrashPage',$commentTrashPage);
+
+
+		//查找管理员的相关信息
+		$username = Session::get('username');
+		$uid = Session::get('uid');
+		$userModel = new User;
+		$myMsg = $userModel->findUser('uid='.$uid)[0];
+		$this->assign('myMsg',$myMsg);
+
+
+
+		
+		
+
+		$this->assign('place',$place);
 		//dump($list);
 		return $this->fetch('index');
 	}
@@ -65,6 +110,13 @@ class Index extends Controller
 		//分页
 		$this->assign('list', $list);
 		$this->assign('page', $page);
+
+				//查找管理员的相关信息
+		$username = Session::get('username');
+		$uid = Session::get('uid');
+		$userModel = new User;
+		$myMsg = $userModel->findUser('uid='.$uid)[0];
+		$this->assign('myMsg',$myMsg);
 		// 渲染模板输出
 		return $this->fetch('index');
 	}
@@ -78,16 +130,30 @@ class Index extends Controller
 		$list = User::where('usertype=1')->paginate(6);
 		// 获取分页显示
 		$page = $list->render();
+
+		//查询普通用户信息
+		$userModel = new User;
+		$userList = $userModel->findUser('usertype=0');
+
+
 		
 		$action = 'manager';
+		$this->assign('userList',$userList);
+		
 		$this->assign('list',$list);
 		$this->assign('page',$page);
+
+		$uid = Session::get('uid');
+		$userModel = new User;
+		$myMsg = $userModel->findUser('uid='.$uid)[0];
+		$this->assign('myMsg',$myMsg);
 		//$this->assign('managerMsg',$managerMsg);
 		$this->assign('action',$action);
 		return $this->fetch('index');
 
 	}
-	
+
+
 
 
 }

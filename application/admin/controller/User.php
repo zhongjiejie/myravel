@@ -4,6 +4,7 @@ use think\Controller;
 use app\admin\model\User;
 use app\admin\controller\Index;
 use app\admin\controller\Upload;
+use think\Session;
 
 class User extends Controller
 {
@@ -22,10 +23,28 @@ class User extends Controller
 	 $user = new User;
 	 //验证用户名和密码是否正确
 	 $result = $user->checkUser($_POST['username'],$_POST['password']);
+	
 	 //页面跳转
-	 $result?$this->success('登录成功！','http://localhost/mytravel/public/index.php/admin/index?action'):$this->error('用户名或密码错误！');
+	 if($result){
+	 	Session::set('username',$_POST['username']);
+	 	Session::set('uid',$result[0]);
+	 	$this->success('登录成功！','http://localhost/mytravel/public/index.php/admin/index?action');
+	 	
+	 }else{
+	 	$this->error('用户名或密码错误！');
+	 }
+	
 
 	}
+
+	function logout()
+	{
+		Session::delete('uid');
+		Session::delete('username');
+		$this->success('退出登录成功！','http://localhost/mytravel/public/index.php/phone/index');
+	}
+
+	
 
 	//编辑用户信息
 	function userUpdate($uid=null)
@@ -69,6 +88,27 @@ class User extends Controller
 	{
 		$userModel =  new User;
 		$result = $userModel->deleteUser('uid='.$uid);
+		$result?$this->success('删除成功！'):$this->error('删除失败！');
+	}
+
+	//添加管理员
+	function addManager()
+	{
+
+		
+		$userModel = new User;
+		foreach ($_POST as $key => $value) {
+			foreach($value as $uid)
+			$result = $userModel->updateUser('uid='.$uid,['usertype'=>1]);
+		}
+		$result?$this->success('添加管理员成功！'):$this->error('添加管理员失败！');
+		
+	}
+
+	function deleteManager($uid)
+	{
+		$userModel = new User;
+		$result = $userModel->updateUser('uid='.$uid,['usertype'=>0]);
 		$result?$this->success('删除成功！'):$this->error('删除失败！');
 	}
 
